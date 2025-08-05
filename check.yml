@@ -1,14 +1,15 @@
-# check_aws_env.yml
-
-- name: Check if AWS credentials are passed into Ansible
+- name: Upload static site to S3
   hosts: localhost
   connection: local
   gather_facts: false
 
+  vars:
+    bucket_name: portfolio-site-bucket-123456789
+
   tasks:
-    - name: Print AWS environment variables
-      debug:
-        msg:
-          - "AWS_ACCESS_KEY_ID = {{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
-          - "AWS_SECRET_ACCESS_KEY = {{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
-          - "AWS_DEFAULT_REGION = {{ lookup('env', 'AWS_DEFAULT_REGION') | default('us-east-1') }}"
+    - name: Upload to S3 using existing environment variables
+      command: aws s3 sync ./out s3://{{ bucket_name }} --delete
+      environment:
+        - AWS_ACCESS_KEY_ID
+        - AWS_SECRET_ACCESS_KEY
+        - AWS_DEFAULT_REGION=us-east-1
