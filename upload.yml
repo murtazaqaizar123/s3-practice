@@ -1,0 +1,39 @@
+- name: Upload static site to S3
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    bucket_name: portfolio-site-bucket-123456789  # Change to your bucket name
+
+  tasks:
+    - name: Check if AWS CLI is installed
+      command: command -v aws
+      register: aws_cli_check
+      ignore_errors: true
+
+    - name: Download AWS CLI zip if not installed
+      command: curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+      args:
+        chdir: "/tmp"
+      when: aws_cli_check.rc != 0
+
+    - name: Unzip AWS CLI if not installed
+      command: unzip -o awscliv2.zip
+      args:
+        chdir: "/tmp"
+      when: aws_cli_check.rc != 0
+
+    - name: Install or update AWS CLI if not installed
+      command: sudo ./aws/install --update
+      args:
+        chdir: "/tmp"
+      when: aws_cli_check.rc != 0
+
+    - name: Upload static site to S3
+      command: aws s3 sync ./out s3://{{ bucket_name }} --delete
+      args:
+        chdir: "{{ playbook_dir }}"
+      environment:
+        AWS_ACCESS_KEY_ID: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
+        AWS_SECRET_ACCESS_KEY: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
+        AWS_DEFAULT_REGION: "{{ lookup('env', 'AWS_DEFAULT_REGION') | default('us-east-1') }}"

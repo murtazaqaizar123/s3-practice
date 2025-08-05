@@ -1,0 +1,20 @@
+- name: Build static Next.js site
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Install Node.js dependencies
+      shell: npm install
+      args:
+        chdir: "{{ playbook_dir }}"
+
+    - name: Build site
+      shell: npm run build
+      args:
+        chdir: "{{ playbook_dir }}"
+
+    - name: Export static site
+      shell: npm run export
+      args:
+        chdir: "{{ playbook_dir }}"
